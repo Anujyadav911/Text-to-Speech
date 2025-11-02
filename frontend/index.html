@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilingual Text-to-Speech</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 Multilingual Text-to-Speech</h1>
+            <p>Convert your text (English + Hindi) into speech</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <label for="textInput">Enter your text:</label>
+                <textarea 
+                    id="textInput" 
+                    placeholder="Type your text here... You can mix English and Hindi. Example: Hello नमस्ते"
+                    rows="8"
+                ></textarea>
+                <button id="speakBtn" class="speak-btn">
+                    <span>🔊 Speak</span>
+                </button>
+            </div>
+
+            <div class="audio-section">
+                <label for="audioPlayer">Generated Speech:</label>
+                <audio id="audioPlayer" controls style="display: none;">
+                    Your browser does not support the audio element.
+                </audio>
+                <div id="loadingIndicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Generating speech...</p>
+                </div>
+                <div id="errorMessage" style="display: none;" class="error"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

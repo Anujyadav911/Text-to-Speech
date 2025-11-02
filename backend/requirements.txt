@@ -1,0 +1,25 @@
+# Flask backend dependencies
+Flask==3.0.0
+flask-cors==4.0.0
+
+# Primary TTS engine - gTTS (excellent Hindi support)
+gTTS==2.5.0
+pydub==0.25.1
+
+# Audio codec support for pydub (required for MP3 to WAV conversion)
+# Note: On Windows, you may need to install ffmpeg separately
+# Download from: https://ffmpeg.org/download.html
+# Or install via chocolatey: choco install ffmpeg
+
+# Coqui TTS (optional - will fall back if not available)
+# Uncomment the line below if you want to use Coqui TTS
+# Note: Coqui TTS requires Python 3.8+ and may have additional system dependencies
+# TTS==0.22.0
+
+# Fallback TTS engine (always install this)
+pyttsx3==2.90
+
+# Additional dependencies for audio handling
+# These come with pyttsx3 but listed here for reference
+# pypiwin32 (Windows) or pyobjc (macOS) may be required for pyttsx3
+
