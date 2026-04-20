@@ -18,6 +18,14 @@
             <div class="card">
                 <h2>Real-time Transcription (Speech-to-Text)</h2>
                 <div class="stt-controls">
+                    <div class="lang-selector">
+                        <label for="langSelect">Language Mode:</label>
+                        <select id="langSelect">
+                            <option value="en-IN" selected>🇮🇳 English + Hindi (Hinglish)</option>
+                            <option value="hi-IN">🇮🇳 Hindi only (हिंदी)</option>
+                            <option value="en-US">🇺🇸 English only</option>
+                        </select>
+                    </div>
                     <button id="recordBtn" class="record-btn">
                         <span id="recordIcon">⏺</span> <span id="recordText">Start Recording</span>
                     </button>

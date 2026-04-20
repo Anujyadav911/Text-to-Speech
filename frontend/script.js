@@ -10,6 +10,7 @@ const recordIcon = document.getElementById("recordIcon");
 const recordText = document.getElementById("recordText");
 const recordingIndicator = document.getElementById("recordingIndicator");
 const transcriptionText = document.getElementById("transcriptionText");
+const langSelect = document.getElementById("langSelect");
 
 // API URLs (relative — works locally and on Render without changes)
 const TTS_API_URL = "/speak";
@@ -83,7 +84,7 @@ function startWebSpeech() {
   recognition = new SpeechRecognition();
   recognition.continuous = true;        // keep listening until stopped
   recognition.interimResults = true;    // show words as they come in
-  recognition.lang = "hi-IN";           // Hindi + English (Hinglish) — best for mixed speech
+  recognition.lang = langSelect ? langSelect.value : "en-IN"; // read from dropdown
 
   recognition.onstart = () => {
     isRecognizing = true;
