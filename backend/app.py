@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import os
 import tempfile
@@ -6,8 +6,16 @@ import sys
 import traceback
 from io import BytesIO
 
-app = Flask(__name__)
+# Serve frontend files from the sibling 'frontend' directory
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
+
+app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
 CORS(app)
+
+@app.route('/')
+def index():
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
 USE_GTTS = False
 USE_COQUI_TTS = False
 tts_engine = None
@@ -71,6 +79,32 @@ if not USE_GTTS and not USE_COQUI_TTS:
         print(f"Error initializing pyttsx3: {e}")
         sys.exit(1)
 
+# Speech-to-Text (Whisper) — Lazy Loading
+# The model is NOT loaded at startup. It is downloaded and loaded on the
+# FIRST transcription request. This prevents startup timeouts for large models.
+whisper_model = None
+WHISPER_MODEL_NAME = "base"  # 'tiny'=75MB fast, 'base'=140MB balanced, 'large-v3'=1.5GB best
+
+def get_whisper_model():
+    """Load the Whisper model on demand (lazy loading). Cached after first load."""
+    global whisper_model
+    if whisper_model is not None:
+        return whisper_model
+    try:
+        from faster_whisper import WhisperModel
+        print(f"Loading Whisper '{WHISPER_MODEL_NAME}' model... (may download on first run)")
+        whisper_model = WhisperModel(WHISPER_MODEL_NAME, device="cpu", compute_type="int8")
+        print(f"✓ Whisper '{WHISPER_MODEL_NAME}' model loaded successfully")
+        return whisper_model
+    except ImportError:
+        print("faster-whisper not available. Run: pip install faster-whisper")
+        return None
+    except Exception as e:
+        print(f"Whisper model load error: {e}")
+        traceback.print_exc()
+        return None
+
+print(f"STT engine: Whisper '{WHISPER_MODEL_NAME}' (will load on first transcription request)")
 
 def detect_language(text):
     for char in text:
@@ -261,18 +295,64 @@ def health():
     })
 
 
+@app.route('/transcribe', methods=['POST'])
+def transcribe():
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+            
+        # Lazy-load the model on first request
+        model = get_whisper_model()
+        if model is None:
+            return jsonify({'error': 'STT engine (faster-whisper) could not be loaded. Check server logs.'}), 500
+
+        # Save the audio file temporarily
+        temp_dir = tempfile.gettempdir()
+        temp_audio_path = os.path.join(temp_dir, audio_file.filename or 'audio.webm')
+        audio_file.save(temp_audio_path)
+        
+        print(f"Transcribing audio file: {temp_audio_path}...")
+        
+        # Transcribe (beam_size=5 for large-v3 gives best accuracy)
+        segments, info = model.transcribe(temp_audio_path, beam_size=5)
+        
+        transcribed_text = ""
+        for segment in segments:
+            transcribed_text += segment.text + " "
+            
+        # Clean up temp file
+        if os.path.exists(temp_audio_path):
+            os.remove(temp_audio_path)
+            
+        print(f"Transcription complete: {transcribed_text}")
+        return jsonify({
+            'text': transcribed_text.strip(),
+            'language': info.language,
+            'language_probability': info.language_probability
+        })
+
+    except Exception as e:
+        print(f"Error in /transcribe endpoint: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to transcribe audio: {str(e)}'}), 500
+
+
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("Multilingual Text-to-Speech Server")
+    print("Multilingual Speech-to-Text & Text-to-Speech Server")
     print("="*50)
+    print(f"STT Engine: faster-whisper '{WHISPER_MODEL_NAME}' (loads on first request)")
     if USE_GTTS:
-        print("Engine: gTTS (excellent Hindi support)")
+        print("TTS Engine: gTTS (excellent Hindi support)")
     elif USE_COQUI_TTS:
-        print("Engine: Coqui TTS XTTS v2 (Hindi support)")
+        print("TTS Engine: Coqui TTS XTTS v2 (Hindi support)")
     else:
-        print("Engine: pyttsx3 (Hindi depends on system voices)")
+        print("TTS Engine: pyttsx3 (Hindi depends on system voices)")
     print("Server running on http://localhost:5000")
     print("="*50 + "\n")
-    
-    app.run(debug=True, host='0.0.0.0', port=5000)
 
+    app.run(debug=False, host='0.0.0.0', port=5000)

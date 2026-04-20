@@ -24,3 +24,6 @@ pyttsx3==2.90
 # pypiwin32 (Windows) or pyobjc (macOS) may be required for pyttsx3
 
 gunicorn
+
+# Speech to Text engine
+faster-whisper==1.0.1

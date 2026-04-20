@@ -4,27 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multilingual Text-to-Speech</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎤 Multilingual Text-to-Speech</h1>
-            <p>Convert your text (English + Hindi) into speech</p>
+            <h1>🎤 Multilingual AI Assistant</h1>
+            <p>Speech-to-Text & Text-to-Speech (English + Hindi)</p>
         </header>
 
         <main>
-            <div class="input-section">
-                <label for="textInput">Enter your text:</label>
-                <textarea 
-                    id="textInput" 
-                    placeholder="Type your text here... You can mix English and Hindi. Example: Hello नमस्ते"
-                    rows="8"
-                ></textarea>
-                <button id="speakBtn" class="speak-btn">
-                    <span>🔊 Speak</span>
-                </button>
+            <div class="card">
+                <h2>Real-time Transcription (Speech-to-Text)</h2>
+                <div class="stt-controls">
+                    <button id="recordBtn" class="record-btn">
+                        <span id="recordIcon">⏺</span> <span id="recordText">Start Recording</span>
+                    </button>
+                    <div id="recordingIndicator" class="recording-indicator" style="display: none;">
+                        <span class="pulsing-dot"></span> Recording...
+                    </div>
+                </div>
+                <div class="transcription-result">
+                    <label for="transcriptionText">Transcribed Text:</label>
+                    <textarea 
+                        id="transcriptionText" 
+                        readonly 
+                        placeholder="Your speech will appear here..."
+                        rows="4"
+                    ></textarea>
+                </div>
             </div>
+
+            <div class="card">
+                <h2>Text-to-Speech</h2>
+                <div class="input-section">
+                    <label for="textInput">Enter your text:</label>
+                    <textarea 
+                        id="textInput" 
+                        placeholder="Type your text here... You can mix English and Hindi. Example: Hello नमस्ते"
+                        rows="4"
+                    ></textarea>
+                    <button id="speakBtn" class="speak-btn">
+                        <span>🔊 Speak</span>
+                    </button>
+                </div>
+
 
             <div class="audio-section">
                 <label for="audioPlayer">Generated Speech:</label>
@@ -36,6 +61,7 @@
                     <p>Generating speech...</p>
                 </div>
                 <div id="errorMessage" style="display: none;" class="error"></div>
+            </div>
             </div>
         </main>
     </div>

@@ -24,6 +24,22 @@ body {
     padding: 40px;
 }
 
+.card {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border: 1px solid #e0e0e0;
+}
+
+.card h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
 header {
     text-align: center;
     margin-bottom: 30px;
@@ -40,9 +56,69 @@ header p {
     font-size: 1.1em;
 }
 
-/* Input Section */
-.input-section {
-    margin-bottom: 30px;
+/* STT & Input Section */
+.input-section, .stt-controls {
+    margin-bottom: 20px;
+}
+
+.record-btn {
+    width: 100%;
+    padding: 15px 30px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.record-btn:hover {
+    background: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+}
+
+.record-btn.recording {
+    background: #e0e0e0;
+    color: #333;
+    animation: pulse 2s infinite;
+}
+
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    font-weight: 600;
+    color: #d32f2f;
+}
+
+.pulsing-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #f44336;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse-dot 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
 }
 
 label {

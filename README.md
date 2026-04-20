@@ -1,234 +1,258 @@
-# Multilingual Text-to-Speech Web Application
+# 🎤 Multilingual Real-time Speech-to-Text & Text-to-Speech Web App
 
-A complete web application that converts multilingual text (English + Hindi) into speech using Python Flask backend and HTML/CSS/JavaScript frontend.
+A full-stack web application that fulfills the assignment requirement of a **real-time, multilingual Speech-to-Text (STT)** service with an additional **Text-to-Speech (TTS)** feature. Supports mixed **Hindi + English** audio transcription and text conversion using **100% open-source, self-hosted AI models**.
 
-## Features
+---
 
-- ✅ **Multilingual Support**: Handles English and Hindi text input (with proper Hindi pronunciation!)
-- ✅ **Modern UI**: Clean, responsive interface with gradient design
-- ✅ **Voice Controls**: Adjustable speech speed and pitch
-- ✅ **Auto-detect Language**: Automatically detects Hindi vs English text
-- ✅ **Smart TTS Engine**: Uses **gTTS** (primary, excellent Hindi) → Coqui TTS → pyttsx3 (fallback)
-- ✅ **Real-time Audio**: Generates and plays speech audio instantly
-- ✅ **Mixed Language Support**: Handles mixed English+Hindi text seamlessly
+## 📌 Assignment Requirement Fulfilled
 
-## Project Structure
+> *"Create a web application 'Speech to Text' service where the user would speak a sentence in real-time which could be multilingual in nature (e.g., Hindi & English) & the system would transcribe those words in real-time. Use any self deployed open source service for this speech to text service."*
+
+✅ **Speech-to-Text** → Uses **OpenAI Whisper** (`faster-whisper`) — fully open-source, self-deployed on your local machine, no API key, no internet required.
+
+✅ **Multilingual** → Whisper natively supports Hindi, English, and Hinglish (mixed).
+
+✅ **Text-to-Speech (Bonus)** → Uses **gTTS** (Google TTS) as primary, falls back to **pyttsx3** (fully offline).
+
+---
+
+## 🤔 Are There Any API Limits? Is It Free?
+
+This is one of the most important things to understand about this project.
+
+### Speech-to-Text (Whisper via `faster-whisper`) — ✅ 100% FREE & UNLIMITED
+
+| Property | Detail |
+|---|---|
+| **License** | MIT (Open-Source — completely free) |
+| **Runs on** | Your own computer (locally) |
+| **Internet required?** | Only once, to download the model file (~75MB) |
+| **API Key required?** | ❌ No |
+| **Rate Limits** | ❌ None. You can transcribe as much as you want |
+| **Cost** | ₹0 — Free forever |
+
+**Why?** Because `faster-whisper` is simply a Python library that runs entirely on your CPU. It's not a cloud service. Once the model file is downloaded and cached on your disk, it works 100% offline. There is no server, no account, and no usage meter.
+
+### Text-to-Speech (gTTS) — ⚠️ Free but Has Soft Rate Limits
+
+| Property | Detail |
+|---|---|
+| **License** | MIT (Open-Source wrapper) |
+| **Runs on** | Calls Google Translate's TTS servers |
+| **Internet required?** | ✅ Yes, always |
+| **API Key required?** | ❌ No |
+| **Rate Limits** | ⚠️ Soft limits (may block if too many requests in a short time) |
+| **Cost** | Free for normal use |
+
+**Why did the Render deployment fail?** Because gTTS sends requests to Google's servers. When deployed on Render's free tier (shared IP), many apps using gTTS from the same IP can cause Google to temporarily block requests — causing a `500 Internal Server Error`. Running it locally avoids this completely.
+
+### Text-to-Speech (pyttsx3) — ✅ 100% FREE, OFFLINE & UNLIMITED (Fallback)
+
+| Property | Detail |
+|---|---|
+| **Runs on** | Your computer using built-in Windows/macOS/Linux voices |
+| **Internet required?** | ❌ No |
+| **Rate Limits** | ❌ None |
+| **Hindi Support** | ⚠️ Depends on system voices installed |
+
+---
+
+## 🏗️ Project Architecture
 
 ```
-Text_to_Speech/
-├── frontend/
-│   ├── index.html      # Main HTML interface
-│   ├── style.css       # Styling
-│   └── script.js       # Frontend logic
-├── backend/
-│   ├── app.py          # Flask server with TTS logic
-│   └── requirements.txt # Python dependencies
-└── README.md           # This file
+Text-to-Speech/
+├── frontend/                  # UI Layer (pure HTML/CSS/JS)
+│   ├── index.html             # Main app page with both STT and TTS sections
+│   ├── style.css              # Styling with animations and glassmorphism
+│   └── script.js              # MediaRecorder API for mic capture + Fetch API
+│
+├── backend/                   # Server Layer (Python + Flask)
+│   ├── app.py                 # Flask REST API with STT and TTS endpoints
+│   └── requirements.txt       # All Python dependencies
+│
+├── venv/                      # Python virtual environment (do NOT commit to git)
+├── runtime.txt                # Python version for deployment
+└── README.md                  # This file
 ```
 
-## Prerequisites
+### How Data Flows
 
-- **Python 3.8+** (for Coqui TTS) or **Python 3.6+** (for pyttsx3 only)
-- **pip** (Python package manager)
-- A modern web browser (Chrome, Firefox, Edge)
+```
+[User's Microphone]
+        ↓  (MediaRecorder API captures audio as .webm blob)
+[Browser (script.js)]
+        ↓  (HTTP POST /transcribe with audio file as FormData)
+[Flask Backend (app.py)]
+        ↓  (Saves audio file temporarily, passes to Whisper)
+[faster-whisper model]  ← runs on your CPU, no internet
+        ↓  (Returns transcribed text + detected language)
+[Flask Backend]
+        ↓  (Returns JSON response)
+[Browser]
+        ↓  (Displays transcribed text in the textarea)
+[User sees the text]
+```
 
-## Setup Instructions
+---
 
-### Step 1: Set Up Python Virtual Environment
+## 🛠️ Tech Stack
 
-1. **Open terminal/command prompt** in the project root directory (`Text_to_Speech`)
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | HTML5, CSS3, Vanilla JavaScript | UI, microphone access, audio recording |
+| Backend | Python 3.10, Flask | REST API server |
+| STT Engine | `faster-whisper` (Whisper `tiny` model) | Speech-to-Text, multilingual |
+| TTS Engine | `gTTS` (primary) / `pyttsx3` (fallback) | Text-to-Speech |
+| CORS | `flask-cors` | Allow browser to call backend API |
 
-2. **Create a virtual environment**:
-   ```bash
-   # Windows
-   python -m venv venv
+---
 
-   # macOS/Linux
-   python3 -m venv venv
-   ```
+## ⚙️ Setup & Installation
 
-3. **Activate the virtual environment**:
-   ```bash
-   # Windows
-   venv\Scripts\activate
+### Prerequisites
 
-   # macOS/Linux
-   source venv/bin/activate
-   ```
+- **Python 3.8+** installed
+- **VS Code** with the **Live Server** extension
+- A working **microphone**
+- Internet connection (only for the first run, to download the Whisper model)
 
-   You should see `(venv)` prefix in your terminal prompt.
+---
 
-### Step 2: Install Dependencies
+### Step 1: Clone / Open the Project
 
-1. **Navigate to backend directory**:
-   ```bash
-   cd backend
-   ```
+Open a terminal (PowerShell or Command Prompt) and navigate to your project:
 
-2. **Install required packages**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+cd C:\Users\YourName\Desktop\Text-to-Speech
+```
 
-   This will install:
-   - Flask (web framework)
-   - flask-cors (CORS support)
-   - **gTTS** (Google Text-to-Speech - **excellent Hindi support**) 🎯
-   - pydub (audio processing)
-   - pyttsx3 (fallback TTS engine)
+---
 
-   **Important for gTTS (MP3 to WAV conversion)**:
-   - Install **ffmpeg** for audio format conversion:
-     - **Windows**: Download from [ffmpeg.org](https://ffmpeg.org/download.html) or use `choco install ffmpeg`
-     - **macOS**: `brew install ffmpeg`
-     - **Linux**: `sudo apt-get install ffmpeg`
-   - If ffmpeg is not installed, the app will still work but return MP3 format instead of WAV
+### Step 2: Create & Activate Virtual Environment
 
-3. **Optional: Install Coqui TTS** (alternative engine):
-   ```bash
-   pip install TTS
-   ```
-   
-   **Note**: 
-   - Coqui TTS requires Python 3.8+ and may download large model files (~500MB) on first use
-   - gTTS is the **recommended** engine for Hindi support (works out of the box)
-   - If gTTS installation fails, the app will automatically fall back to Coqui TTS or pyttsx3
+```bash
+# Create the virtual environment
+python -m venv venv
 
-### Step 3: Run the Backend Server
+# Activate it (Windows)
+venv\Scripts\activate
 
-1. **Make sure you're in the backend directory** and virtual environment is activated
+# You will see (venv) prefix in your terminal — this is correct!
+```
 
-2. **Start the Flask server**:
-   ```bash
-   python app.py
-   ```
+---
 
-   You should see output like:
-   ```
-   ==================================================
-   Multilingual Text-to-Speech Server
-   ==================================================
-   Engine: pyttsx3 (or Coqui TTS if installed)
-   Server running on http://localhost:5000
-   ==================================================
-   ```
+### Step 3: Install All Dependencies
 
-3. **Keep this terminal window open** - the server needs to stay running
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-### Step 4: Open the Frontend
+This installs:
+- `Flask` — the web server
+- `flask-cors` — so the browser can talk to Flask
+- `faster-whisper` — the open-source Speech-to-Text AI model
+- `gTTS` — Google Text-to-Speech
+- `pydub` — audio processing
+- `pyttsx3` — offline fallback TTS
 
-1. **Open a new terminal window** (keep the backend running)
+**⚠️ This step may take 2-5 minutes** as it downloads several packages including `faster-whisper`.
 
-2. **Navigate to frontend directory**:
-   ```bash
-   cd frontend
-   ```
+---
 
-3. **Open `index.html` in your web browser**:
-   - **Option 1**: Double-click `index.html` in your file explorer
-   - **Option 2**: Right-click `index.html` → "Open with" → Choose your browser
-   - **Option 3**: Drag and drop `index.html` into your browser window
+### Step 4: Start the Backend Server
 
-   **Note**: If you encounter CORS issues, you can also serve the frontend with a simple HTTP server:
-   ```bash
-   # Python 3
-   python -m http.server 8000
-   
-   # Then open http://localhost:8000 in browser
-   ```
+Make sure you are inside the `backend/` folder with the virtual environment active:
 
-## Usage
+```bash
+# From the project root
+cd backend
+..\venv\Scripts\activate   # activate venv
+python app.py              # start Flask server
+```
 
-1. **Enter text** in the textarea (supports English and Hindi mixed)
-   - Example: `Hello नमस्ते! How are you? क्या हाल है?`
+You should see this output:
 
-2. **Adjust voice controls** (optional):
-   - **Speed**: Controls speech rate (0.5x to 2.0x)
-   - **Pitch**: Controls voice pitch (0.5x to 2.0x)
+```
+Initializing TTS engine...
+✓ gTTS initialized successfully (excellent Hindi support)
+Initializing STT engine (faster-whisper)...
+✓ faster-whisper initialized successfully
 
-3. **Click "Speak" button** to generate speech
+==================================================
+Multilingual Speech-to-Text & Text-to-Speech Server
+==================================================
+STT Engine: faster-whisper
+TTS Engine: gTTS (excellent Hindi support)
+Server running on http://localhost:5000
+==================================================
+```
 
-4. **Audio player** will appear and play the generated speech automatically
+> **📌 IMPORTANT:** Keep this terminal open! The Flask server must stay running while you use the app.
 
-5. **Use Ctrl+Enter** (or Cmd+Enter on Mac) in the textarea for quick speech generation
+> **📌 First-time Whisper download:** On the very first request to `/transcribe`, `faster-whisper` will automatically download the Whisper `tiny` model (~75MB) from HuggingFace and cache it on your disk. This happens only once.
 
-## How Multilingual Text is Handled
+---
 
-### Language Detection
-The application automatically detects if the text contains Hindi characters (Devanagari script, Unicode range U+0900 to U+097F).
+### Step 5: Start the Frontend
 
-### TTS Engine Differences
+1. Open the project folder in **VS Code**
+2. Open `frontend/index.html`
+3. Click **"Go Live"** at the bottom-right of VS Code (Live Server extension)
+4. Your browser will open: `http://127.0.0.1:5500/frontend/index.html`
 
-#### gTTS (Google Text-to-Speech) - **PRIMARY ENGINE** 🎯
-- **Excellent Hindi support**: Native Hindi pronunciation with proper Devanagari handling
-- **Mixed language**: Handles English + Hindi text seamlessly
-- **High quality**: Cloud-based TTS with natural voices
-- **Requires internet**: Needs active internet connection
-- **Free and open-source**: No API keys required
+> **Why Live Server and not just double-clicking the file?**
+> The `MediaRecorder` microphone API requires the page to be served over `http://` or `https://`. Opening a file directly with `file://` will block microphone access.
 
-#### Coqui TTS (alternative)
-- **Better quality**: Neural network-based, more natural sounding
-- **Multilingual support**: XTTS v2 model supports Hindi (`'hi'` language code)
-- **Offline**: Works without internet after model download
-- **Large models**: ~500MB download required
+---
 
-#### pyttsx3 (fallback)
-- **Widely compatible**: Works on Windows, macOS, and Linux
-- **System voices**: Uses system-installed TTS voices
-- **Language support**: Depends on available system voices
-  - **Windows**: May need to install Hindi language pack
-  - **macOS**: May need to add Hindi voice in System Preferences
-  - **Linux**: Requires `festival` or `espeak` with Hindi support
+## 🎯 How to Use the App
 
-### Hindi Support Status
+### Feature 1: Real-time Speech-to-Text (Main Assignment Feature)
 
-✅ **gTTS**: Full Hindi support - **recommended for Hindi text**
-✅ **Coqui TTS XTTS v2**: Full Hindi support (uses `'hi'` language code)
-⚠️ **pyttsx3**: Hindi support depends on system voices (may not work out of the box)
+1. Open the app at `http://127.0.0.1:5500/frontend/index.html`
+2. In the **"Real-time Transcription"** card, click the red **"⏺ Start Recording"** button
+3. Grant microphone permission if the browser asks
+4. **Speak clearly** — you can use English, Hindi, or mix both:
+   - *"Hello, mera naam Anuj hai. I am testing this application."*
+   - *"आज का मौसम बहुत अच्छा है, isn't it?"*
+5. Click **"⏹ Stop Recording"** when done
+6. Wait a few seconds — your transcribed text will appear in the box!
+7. The detected language will also be shown (e.g., `[Detected Language: hi]`)
 
-## Troubleshooting
+### Feature 2: Text-to-Speech (Bonus Feature)
 
-### Backend Issues
+1. Scroll down to the **"Text-to-Speech"** card
+2. Type any text (English, Hindi, or mixed) in the text box
+   - Example: `Hello! नमस्ते दोस्त, how are you? आप कैसे हैं?`
+3. Click the **"🔊 Speak"** button
+4. Wait for the audio player to appear and the speech to play
 
-**Problem**: `ModuleNotFoundError` when running `app.py`
-- **Solution**: Make sure virtual environment is activated and dependencies are installed
+---
 
-**Problem**: gTTS requires internet connection
-- **Solution**: The app needs an active internet connection for gTTS. If offline, it will try Coqui TTS or pyttsx3.
+## 🔌 API Endpoints Reference
 
-**Problem**: Coqui TTS installation fails
-- **Solution**: The app will automatically fall back to pyttsx3. gTTS is the recommended engine anyway.
+### `POST /transcribe` — Speech to Text
+Receives an audio file and returns the transcribed text.
 
-**Problem**: "ffmpeg not found" error
-- **Solution**: Install ffmpeg (see Setup Instructions). The app will still work but return MP3 instead of WAV.
+**Request:** `multipart/form-data` with a field named `audio` containing the audio file.
 
-**Problem**: `pyttsx3` voice not working on Linux
-- **Solution**: Install system TTS: `sudo apt-get install espeak` or `sudo apt-get install festival`
+**Response:**
+```json
+{
+  "text": "Hello, mera naam Anuj hai.",
+  "language": "hi",
+  "language_probability": 0.92
+}
+```
 
-**Problem**: Port 5000 already in use
-- **Solution**: Change port in `app.py` (last line): `app.run(..., port=5001)`
+---
 
-### Frontend Issues
+### `POST /speak` — Text to Speech
+Receives text and returns an audio file.
 
-**Problem**: "Failed to generate speech" error
-- **Solution**: 
-  - Ensure Flask server is running on `http://localhost:5000`
-  - Check browser console (F12) for detailed errors
-  - Verify CORS is enabled (should be automatic)
-
-**Problem**: CORS errors in browser console
-- **Solution**: The Flask app includes `flask-cors`. If issues persist, check that `CORS(app)` is in `app.py`
-
-**Problem**: Audio doesn't play automatically
-- **Solution**: Some browsers block autoplay. Click the play button manually.
-
-## API Endpoint
-
-### POST `/speak`
-
-Converts text to speech.
-
-**Request Body**:
+**Request Body:**
 ```json
 {
   "text": "Hello नमस्ते",
@@ -237,77 +261,58 @@ Converts text to speech.
 }
 ```
 
-
-
-**Example using curl**:
-```bash
-curl -X POST http://localhost:5000/speak \
-  -H "Content-Type: application/json" \
-  -d '{"text":"Hello world","speed":1.0,"pitch":1.0}' \
-  --output speech.wav
-```
-
-### GET `/health`
-
-Health check endpoint.
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "engine": "pyttsx3",
-  "multilingual_support": "partial"
-}
-```
-
-## Development Notes
-
-### Code Structure
-
-- **Frontend**: Pure JavaScript (no frameworks), communicates with backend via Fetch API
-- **Backend**: Flask REST API, generates audio files temporarily, sends them to frontend
-- **TTS Engine**: Dynamic selection based on availability (Coqui TTS → pyttsx3)
-
-### Key Files Explained
-
-- **`app.py`**: 
-  - Imports TTS libraries with try/except for graceful fallback
-  - `/speak` endpoint handles text processing and audio generation
-  - Language detection function identifies Hindi characters
-  - Temporary files are cleaned up after sending
-
-- **`script.js`**:
-  - Sends POST request to Flask backend with text and voice parameters
-  - Handles audio playback using HTML5 Audio API
-  - Updates UI based on loading/error states
-
-- **`index.html`**:
-  - Semantic HTML structure with accessibility considerations
-  - Includes voice control sliders (bonus feature)
-  - Responsive design for mobile devices
-
-## Future Enhancements
-
-- [ ] Add more language support
-- [ ] Voice selection dropdown
-- [ ] Download audio file option
-- [ ] Text preview with language highlighting
-- [ ] Support for more audio formats (MP3)
-- [ ] Batch text processing
-- [ ] Cloud deployment instructions
-
-## License
-
-This project is provided as-is for educational purposes.
-
-## Support
-
-For issues or questions:
-1. Check the Troubleshooting section
-2. Verify all dependencies are installed correctly
-3. Check browser console and server logs for error messages
+**Response:** Audio file (`.mp3` or `.wav`)
 
 ---
 
-**Happy Speech Generation! 🎤**
+### `GET /health` — Health Check
+Check if the server and its engines are running correctly.
 
+**Response:**
+```json
+{
+  "status": "healthy",
+  "engine": "gTTS",
+  "multilingual_support": "full",
+  "hindi_support": "yes"
+}
+```
+
+---
+
+## 🐛 Common Errors & Fixes
+
+| Error | Cause | Fix |
+|---|---|---|
+| `STT engine not initialized` | `faster-whisper` failed to load | Restart `python app.py`. Check it prints `✓ faster-whisper initialized` |
+| `Failed to fetch` / CORS error | Backend is not running | Make sure `python app.py` is running in your terminal |
+| `Could not access microphone` | Browser blocked mic | Open browser settings → Site Settings → Allow microphone for `localhost` |
+| `Transcribing... Please wait` (stuck forever) | Whisper model is still downloading | Wait for the first download (~75MB) to complete |
+| `500 Internal Server Error` on TTS | gTTS rate limit hit | Wait 1-2 minutes and try again, or use pyttsx3 (offline) |
+| Port 5000 already in use | Another app is using port 5000 | Change port in `app.py` last line: `app.run(port=5001)` and update `script.js` URLs to `5001` |
+
+---
+
+## 🧠 How Whisper Handles Hindi + English
+
+OpenAI's Whisper model was trained on 680,000 hours of multilingual audio from the internet, including a massive amount of Indian English, Hindi, and Hinglish content.
+
+- It **auto-detects the language** — you don't need to tell it you're speaking Hindi.
+- It handles **code-switching** (mixing languages mid-sentence) well.
+- The `tiny` model (75MB) is fast. The `base` model (140MB) is slightly more accurate. You can change this in `app.py`.
+
+---
+
+## 🚀 Summary
+
+| What | How |
+|---|---|
+| Speech → Text | `faster-whisper` (Whisper `tiny`) on CPU, local, offline |
+| Text → Speech | `gTTS` (Google TTS, needs internet) → fallback `pyttsx3` (offline) |
+| API Limits | **STT: NONE** (runs locally). TTS: Soft limit on gTTS (free) |
+| Cost | **₹0 — Completely Free** |
+| Internet needed | Only for: 1st model download & gTTS calls |
+
+---
+
+*Built for the Real-time Multilingual Transcription Assignment — Using Open-Source AI (Whisper) + Flask + Vanilla JS*
