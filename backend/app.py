@@ -79,32 +79,28 @@ if not USE_GTTS and not USE_COQUI_TTS:
         print(f"Error initializing pyttsx3: {e}")
         sys.exit(1)
 
-# Speech-to-Text (Whisper) — Lazy Loading
-# The model is NOT loaded at startup. It is downloaded and loaded on the
-# FIRST transcription request. This prevents startup timeouts for large models.
+# Speech-to-Text (Whisper) — Loaded at startup
+# Using 'tiny' model: only 75MB, fast on CPU, loads in ~20s.
+# Pre-loaded here so gunicorn --preload shares it across workers.
+# 'base'=140MB (slower), 'large-v3'=1.5GB (best quality, needs GPU ideally)
 whisper_model = None
-WHISPER_MODEL_NAME = "base"  # 'tiny'=75MB fast, 'base'=140MB balanced, 'large-v3'=1.5GB best
+WHISPER_MODEL_NAME = "tiny"
+
+print(f"Loading Whisper '{WHISPER_MODEL_NAME}' model at startup...")
+try:
+    from faster_whisper import WhisperModel
+    whisper_model = WhisperModel(WHISPER_MODEL_NAME, device="cpu", compute_type="int8")
+    print(f"✓ Whisper '{WHISPER_MODEL_NAME}' model loaded successfully")
+except ImportError:
+    print("faster-whisper not available. Run: pip install faster-whisper")
+except Exception as e:
+    print(f"Whisper model load error: {e}")
+    traceback.print_exc()
 
 def get_whisper_model():
-    """Load the Whisper model on demand (lazy loading). Cached after first load."""
-    global whisper_model
-    if whisper_model is not None:
-        return whisper_model
-    try:
-        from faster_whisper import WhisperModel
-        print(f"Loading Whisper '{WHISPER_MODEL_NAME}' model... (may download on first run)")
-        whisper_model = WhisperModel(WHISPER_MODEL_NAME, device="cpu", compute_type="int8")
-        print(f"✓ Whisper '{WHISPER_MODEL_NAME}' model loaded successfully")
-        return whisper_model
-    except ImportError:
-        print("faster-whisper not available. Run: pip install faster-whisper")
-        return None
-    except Exception as e:
-        print(f"Whisper model load error: {e}")
-        traceback.print_exc()
-        return None
+    """Return the pre-loaded Whisper model."""
+    return whisper_model
 
-print(f"STT engine: Whisper '{WHISPER_MODEL_NAME}' (will load on first transcription request)")
 
 def detect_language(text):
     for char in text:
